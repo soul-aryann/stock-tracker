@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.project.stock_tracker.dto.DailyStockResponse;
 import com.project.stock_tracker.dto.StockOverviewResponse;
 import com.project.stock_tracker.dto.StockResponse;
+import com.project.stock_tracker.dto.SymbolSearchResult;
 import com.project.stock_tracker.entity.FavouriteStock;
 import com.project.stock_tracker.service.StockService;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,11 @@ public class StockController {
 
     public StockController(final StockService stockService) {
         this.stockService = stockService;
+    }
+
+    @GetMapping("/search")
+    public List<SymbolSearchResult> searchStocks(@RequestParam String query) {
+        return stockService.searchSymbols(query);
     }
 
     @GetMapping("/{stockSymbol}") 
@@ -48,6 +55,12 @@ public class StockController {
     public ResponseEntity<FavouriteStock> saveFavouriteStock(@RequestBody FavouriteStockRequest request) {
         final FavouriteStock saved = stockService.addFavourite(request.getSymbol());
         return ResponseEntity.ok(saved);
+    }
+
+    @DeleteMapping("/favourites/{symbol}")
+    public ResponseEntity<Void> deleteFavouriteStock(@PathVariable String symbol) {
+        stockService.removeFavourite(symbol.toUpperCase());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/favourites")

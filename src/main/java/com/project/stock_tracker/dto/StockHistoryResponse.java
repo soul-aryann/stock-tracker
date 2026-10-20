@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record StockHistoryResponse(
     @JsonProperty("Meta Data") MetaData metaData,
-    @JsonProperty("Time Series (Daily)") Map<String, DailyHistoryEntry> dailyStock
+    @JsonProperty("Time Series (Daily)") Map<String, DailyHistoryEntry> dailyStock,
+    @JsonProperty("Information") String information,
+    @JsonProperty("Note") String note
 ) {
     public record MetaData(
         @JsonProperty("2. Symbol") String symbol

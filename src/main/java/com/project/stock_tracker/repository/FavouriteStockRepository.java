@@ -8,4 +8,5 @@ import com.project.stock_tracker.entity.FavouriteStock;
 @Repository
 public interface FavouriteStockRepository extends JpaRepository<FavouriteStock, Long> {
     boolean existsByStockSymbol(String stockSymbol);
+    void deleteByStockSymbol(String stockSymbol);
 }

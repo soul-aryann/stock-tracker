@@ -11,4 +11,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleFavouriteAlreadyExistsException(FavouriteAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
+
+    @ExceptionHandler(FavouriteNotFoundException.class)
+    public ResponseEntity<String> handleFavouriteNotFoundException(FavouriteNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(StockDataUnavailableException.class)
+    public ResponseEntity<String> handleStockDataUnavailableException(StockDataUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
 }

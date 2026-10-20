@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Apex Markets — Institutional-grade equity tracking, portfolio valuation, and price alert intelligence.">
+    <title>Apex Markets — Equity Intelligence & Portfolio Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Global Header -->
+    <header class="app-masthead">
+        <div class="masthead-left">
+            <div class="brand-mark">
+                <span class="brand-monogram">APEX</span>
+                <span class="brand-desk-badge">MARKETS</span>
+            </div>
+            <div class="market-clock">
+                <span class="status-indicator"></span>
+                <span id="market-status-text">FEED ACTIVE</span>
+            </div>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="masthead-center">
+            <div class="search-field-wrapper">
+                <svg class="search-glyph" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="6.5" cy="6.5" r="4.5"></circle>
+                    <line x1="10" y1="10" x2="14" y2="14"></line>
+                </svg>
+                <input type="text" id="symbol-search-input" placeholder="Search ticker or corporation..." autocomplete="off" spellcheck="false">
+                <kbd class="shortcut-key">/</kbd>
+                <div id="search-spinner" class="spinner-inline hidden"></div>
+                <div id="search-dropdown" class="search-dropdown-menu hidden"></div>
+            </div>
+        </div>
+
+        <!-- Desk Navigation & Quick Actions -->
+        <div class="masthead-right">
+            <nav class="desk-nav" role="tablist">
+                <button class="desk-tab active" id="nav-dashboard" data-tab="dashboard-tab" role="tab" aria-selected="true">Terminal</button>
+                <button class="desk-tab" id="nav-watchlist" data-tab="watchlist-tab" role="tab" aria-selected="false">Watchlist</button>
+                <button class="desk-tab" id="nav-portfolio" data-tab="portfolio-tab" role="tab" aria-selected="false">Portfolio</button>
+                <button class="desk-tab" id="nav-alerts" data-tab="alerts-tab" role="tab" aria-selected="false">Alerts</button>
+            </nav>
+            <button id="refresh-all-btn" class="action-btn-minimal" title="Force Refresh Feed">
+                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M13.5 8A5.5 5.5 0 1 1 11.5 3.8L13.5 6M13.5 2v4h-4"></path>
+                </svg>
+                <span>Sync</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Horizontal Watchlist Ticker Strip -->
+    <div class="ticker-ribbon" id="ticker-ribbon">
+        <span class="ribbon-label">WATCHLIST</span>
+        <div class="ribbon-scroll-track" id="ribbon-track">
+            <span class="ribbon-placeholder">Loading monitored tickers...</span>
+        </div>
+    </div>
+
+    <!-- Main Workspace Area -->
+    <main class="workbench-main">
+
+        <!-- Tab 1: Terminal & Security Dossier -->
+        <section id="dashboard-tab" class="workspace-pane active" role="tabpanel">
+            <div class="dossier-layout">
+                <!-- Left: Primary Chart & Quote Pane -->
+                <div class="dossier-primary">
+                    <div class="security-banner">
+                        <div class="security-meta">
+                            <div class="ticker-headline">
+                                <h1 id="active-symbol-badge" class="active-symbol">IBM</h1>
+                                <span id="active-stock-exchange" class="exchange-tag">NYSE</span>
+                                <span id="active-stock-name" class="company-formal-name">International Business Machines Corp</span>
+                            </div>
+                            <div class="price-strip">
+                                <span id="active-stock-price" class="headline-price">$0.00</span>
+                                <span id="active-stock-change" class="delta-tag">--</span>
+                                <span id="active-stock-updated" class="trading-timestamp">As of: --</span>
+                            </div>
+                        </div>
+                        <div class="security-commands">
+                            <button id="add-to-watchlist-btn" class="command-btn">
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 2v12M2 8h12"></path></svg>
+                                <span>Watch</span>
+                            </button>
+                            <button id="open-position-btn" class="command-btn command-btn-accent">
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 13h10M8 3v7M5 7l3 3 3-3"></path></svg>
+                                <span>Add Position</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chart Workspace -->
+                    <div class="chart-console">
+                        <div class="chart-header-bar">
+                            <span class="chart-mode-label">Historical Settlement / Daily Close</span>
+                            <div class="timeframe-segment" role="group" aria-label="Timeframe">
+                                <button class="tf-btn" data-days="7">7D</button>
+                                <button class="tf-btn active" data-days="30">30D</button>
+                                <button class="tf-btn" data-days="90">90D</button>
+                            </div>
+                        </div>
+                        <div class="chart-stage">
+                            <canvas id="stockHistoryChart"></canvas>
+                            <div id="chart-loader" class="stage-overlay hidden">
+                                <span class="loading-label">Loading historical data...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Narrative Block -->
+                    <div class="profile-narrative-card">
+                        <h2 class="subhead-label">Issuer Profile & Scope</h2>
+                        <p id="metric-description" class="narrative-body">Loading security description and operational overview...</p>
+                    </div>
+                </div>
+
+                <!-- Right: Fundamental Ratio Panel -->
+                <aside class="dossier-secondary">
+                    <div class="ratios-card">
+                        <h2 class="subhead-label">Live Session & Key Statistics</h2>
+                        <dl class="ratio-list">
+                            <div class="ratio-row">
+                                <dt>Day High</dt>
+                                <dd id="metric-high">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Day Low</dt>
+                                <dd id="metric-low">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Day Open</dt>
+                                <dd id="metric-open">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Previous Close</dt>
+                                <dd id="metric-prev-close">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Day Change</dt>
+                                <dd id="metric-change">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Trading Volume</dt>
+                                <dd id="metric-volume">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Period Range (Hist)</dt>
+                                <dd id="metric-period-range">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Market Cap</dt>
+                                <dd id="metric-marketcap">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>P/E Ratio (TTM)</dt>
+                                <dd id="metric-pe">--</dd>
+                            </div>
+                            <div class="ratio-row">
+                                <dt>Primary Sector</dt>
+                                <dd id="metric-sector">--</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Quick Alert Formulation Box -->
+                    <div class="quick-alert-card">
+                        <h2 class="subhead-label">Set Immediate Alert</h2>
+                        <form id="quick-alert-inline-form" class="compact-form">
+                            <div class="form-row">
+                                <label for="inline-alert-direction">Direction</label>
+                                <select id="inline-alert-direction" class="control-select">
+                                    <option value="ABOVE">Price ≥ Target</option>
+                                    <option value="BELOW">Price ≤ Target</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="inline-alert-target">Target ($)</label>
+                                <input type="number" id="inline-alert-target" step="0.01" min="0" placeholder="0.00" required class="control-input">
+                            </div>
+                            <button type="submit" class="command-btn command-btn-full">Arm Alert</button>
+                        </form>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- Tab 2: Watchlist Desk -->
+        <section id="watchlist-tab" class="workspace-pane" role="tabpanel">
+            <div class="section-toolbar">
+                <div class="toolbar-title-group">
+                    <h2 class="panel-heading">Tracked Securities Watchlist</h2>
+                    <span class="panel-subtext">Cached real-time quotes monitored across active tracking sessions.</span>
+                </div>
+                <div class="toolbar-actions">
+                    <div class="inline-entry-group">
+                        <input type="text" id="quick-add-watchlist-input" placeholder="TICKER" maxlength="10" spellcheck="false" class="control-input-tight">
+                        <button id="quick-add-watchlist-btn" class="command-btn command-btn-accent">Add Symbol</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ledger-table-container">
+                <table class="ledger-table" id="watchlist-table">
+                    <thead>
+                        <tr>
+                            <th class="col-symbol">Symbol</th>
+                            <th class="col-numeric">Current Price</th>
+                            <th class="col-date">Settlement Date</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlist-tbody">
+                        <tr><td colspan="4" class="table-empty-notice">No tracked symbols in watchlist. Enter a ticker above to begin.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tab 3: Portfolio Ledger -->
+        <section id="portfolio-tab" class="workspace-pane" role="tabpanel">
+            <!-- Portfolio Top Metrics Summary Strip -->
+            <div class="portfolio-metrics-ribbon">
+                <div class="metric-cell">
+                    <span class="cell-label">Total Cost Basis</span>
+                    <span id="stat-invested" class="cell-number">$0.00</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="cell-label">Current Market Value</span>
+                    <span id="stat-current" class="cell-number">$0.00</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="cell-label">Unrealized P&L</span>
+                    <span id="stat-pnl" class="cell-number">$0.00</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="cell-label">Return on Investment</span>
+                    <span id="stat-return" class="cell-number">0.00%</span>
+                </div>
+            </div>
+
+            <div class="section-toolbar">
+                <div class="toolbar-title-group">
+                    <h2 class="panel-heading">Open Portfolio Positions</h2>
+                    <span class="panel-subtext">Holdings priced against current equity quotes with mark-to-market returns.</span>
+                </div>
+                <button id="open-add-holding-modal-btn" class="command-btn command-btn-accent">
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 2v12M2 8h12"></path></svg>
+                    <span>Record Position</span>
+                </button>
+            </div>
+
+            <div class="ledger-table-container">
+                <table class="ledger-table" id="portfolio-table">
+                    <thead>
+                        <tr>
+                            <th class="col-symbol">Security</th>
+                            <th class="col-numeric">Shares</th>
+                            <th class="col-numeric">Cost / Share</th>
+                            <th class="col-numeric">Mark Price</th>
+                            <th class="col-numeric">Cost Basis</th>
+                            <th class="col-numeric">Market Value</th>
+                            <th class="col-numeric">Unrealized P&L</th>
+                            <th class="col-numeric">Return</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-tbody">
+                        <tr><td colspan="9" class="table-empty-notice">No portfolio holdings recorded. Record a position to compute book value.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tab 4: Price Alerts Desk -->
+        <section id="alerts-tab" class="workspace-pane" role="tabpanel">
+            <div class="alerts-split-layout">
+                <!-- Left: Alert Definition Console -->
+                <div class="alert-form-panel">
+                    <div class="panel-header-compact">
+                        <h2 class="panel-heading-sm">Register Threshold Alert</h2>
+                        <span class="panel-subtext">Trigger notification flags when market prices violate criteria.</span>
+                    </div>
+
+                    <form id="create-alert-form" class="institutional-form">
+                        <div class="form-field">
+                            <label for="alert-symbol">Target Ticker</label>
+                            <input type="text" id="alert-symbol" placeholder="e.g. AAPL" maxlength="10" required spellcheck="false" class="control-input">
+                        </div>
+                        <div class="form-field">
+                            <label for="alert-direction">Trigger Condition</label>
+                            <select id="alert-direction" class="control-select">
+                                <option value="ABOVE">Price Rises Above or Equal (≥)</option>
+                                <option value="BELOW">Price Drops Below or Equal (≤)</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="alert-target-price">Target Strike Price ($ USD)</label>
+                            <input type="number" step="0.01" min="0.01" id="alert-target-price" placeholder="150.00" required class="control-input">
+                        </div>
+                        <button type="submit" class="command-btn command-btn-accent command-btn-full">Commit Alert Trigger</button>
+                    </form>
+                </div>
+
+                <!-- Right: Alerts Ledger -->
+                <div class="alert-ledger-panel">
+                    <div class="section-toolbar-compact">
+                        <div class="toolbar-title-group">
+                            <h2 class="panel-heading-sm">Active & Triggered Monitors</h2>
+                            <span class="panel-subtext">Monitors evaluated across real-time feeds.</span>
+                        </div>
+                        <button id="trigger-check-alerts-btn" class="command-btn">
+                            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M13.5 8A5.5 5.5 0 1 1 11.5 3.8L13.5 6M13.5 2v4h-4"></path></svg>
+                            <span>Evaluate Triggers</span>
+                        </button>
+                    </div>
+
+                    <div class="ledger-table-container">
+                        <table class="ledger-table" id="alerts-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-symbol">Security</th>
+                                    <th>Trigger Rule</th>
+                                    <th class="col-numeric">Target Strike</th>
+                                    <th class="col-numeric">Last Price</th>
+                                    <th>Status</th>
+                                    <th class="col-actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-tbody">
+                                <tr><td colspan="6" class="table-empty-notice">No price alerts registered.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Add Holding Entry -->
+    <div id="holding-modal" class="modal-scrim hidden" role="dialog" aria-modal="true">
+        <div class="modal-box">
+            <div class="modal-top">
+                <h3 class="modal-title">Record Portfolio Holding</h3>
+                <button id="close-holding-modal-btn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+            </div>
+            <form id="add-holding-form" class="institutional-form">
+                <div class="form-field">
+                    <label for="holding-symbol">Security Ticker</label>
+                    <input type="text" id="holding-symbol" placeholder="e.g. MSFT" maxlength="10" required spellcheck="false" class="control-input">
+                </div>
+                <div class="form-field">
+                    <label for="holding-quantity">Number of Shares</label>
+                    <input type="number" step="any" min="0.0001" id="holding-quantity" placeholder="25" required class="control-input">
+                </div>
+                <div class="form-field">
+                    <label for="holding-price">Execution Price Per Share ($)</label>
+                    <input type="number" step="0.01" min="0.01" id="holding-price" placeholder="240.50" required class="control-input">
+                </div>
+                <div class="form-field">
+                    <label for="holding-date">Acquisition Date</label>
+                    <input type="date" id="holding-date" class="control-input">
+                </div>
+                <div class="modal-footer-actions">
+                    <button type="button" id="cancel-holding-btn" class="command-btn">Cancel</button>
+                    <button type="submit" class="command-btn command-btn-accent">Save Position</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Deck -->
+    <div id="toast-container" class="toast-deck" aria-live="polite"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
